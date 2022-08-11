@@ -94,18 +94,18 @@ def inline_handler(call: CallbackQuery) -> None:
         bot.send_message(call.message.chat.id, '/bestdeal в разработке')
     elif call.data == "/history":
         bot.send_message(call.message.chat.id, '/history в разработке')
-    else:
-        bot.send_message(call.message.chat.id, "Я Вас не понимаю.", reply_markup=main_keyboard(command='/help'))
 
 
 @bot.message_handler(state=None)
-def other_handler(message: Message) -> None:
+def other_message(message: Message) -> None:
     """
     Функция -обработчик всех прочих сообщений
     :param message: Message
     :return: None
     """
-    pass
+    bot.send_message(message.from_user.id,
+                     'Для ознакомления с доступными функциями напишите /help\nили нажмите кнопку ниже',
+                     reply_markup=main_keyboard(command='/start'))
 
 
 bot.polling(none_stop=True, interval=0)
