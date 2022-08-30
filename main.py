@@ -11,7 +11,7 @@ bot = telebot.TeleBot(config.bot_token)
 
 
 @bot.message_handler(commands=['start'])
-def welcome_start(message: Message) -> None:
+def command_start(message: Message) -> None:
     """
     Функция -обработчик команды /start, приветствие пользователя
     :param message: Message
@@ -26,7 +26,7 @@ def welcome_start(message: Message) -> None:
 
 
 @bot.message_handler(commands=['help'])
-def welcome_help(message: Message) -> None:
+def command_help(message: Message) -> None:
     """
     Функция -обработчик команды /help
     :param message: Message
@@ -39,21 +39,44 @@ def welcome_help(message: Message) -> None:
                      reply_markup=main_keyboard(message.text))
 
 
-@bot.message_handler(commands=['lowprice', 'highprice', 'bestdeal', 'history'])
-def message_command(message: Message) -> None:
+@bot.message_handler(commands=['lowprice'])
+def command_lowprice(message: Message) -> None:
     """
-    Функция -обработчик команд из сообщений. Реагирует на заложенные команды
+    Функция -обработчик команды /lowprice
     :param message: Message
     :return: None
     """
-    if message.text == '/lowprice':
-        bot.send_message(message.from_user.id, '/lowprice в разработке')
-    elif message.text == '/highprice':
-        bot.send_message(message.from_user.id, '/highprice в разработке')
-    elif message.text == '/bestdeal':
-        bot.send_message(message.from_user.id, '/bestdeal в разработке')
-    elif message.text == '/history':
-        bot.send_message(message.from_user.id, '/history в разработке')
+    bot.send_message(message.from_user.id, '/lowprice в разработке')
+
+
+@bot.message_handler(commands=['highprice'])
+def command_highprice(message: Message) -> None:
+    """
+    Функция -обработчик команды /highprice
+    :param message: Message
+    :return: None
+    """
+    bot.send_message(message.from_user.id, '/highprice в разработке')
+
+
+@bot.message_handler(commands=['bestdeal'])
+def command_bestdeal(message: Message) -> None:
+    """
+    Функция -обработчик команды /bestdeal
+    :param message: Message
+    :return: None
+    """
+    bot.send_message(message.from_user.id, '/bestdeal в разработке')
+
+
+@bot.message_handler(commands=['history'])
+def command_history(message: Message) -> None:
+    """
+    Функция -обработчик команды /history
+    :param message: Message
+    :return: None
+    """
+    bot.send_message(message.from_user.id, '/history в разработке')
 
 
 def main_keyboard(command: str) -> InlineKeyboardMarkup:
@@ -86,17 +109,17 @@ def inline_handler(call: CallbackQuery) -> None:
         bot.send_sticker(call.from_user.id, config.sticker_help)
         bot.send_message(call.from_user.id, '{}, не знаете что делать?'.format(call.from_user.first_name))
         bot.send_message(call.from_user.id, config.help_message, reply_markup=main_keyboard(call.data))
-    elif call.data == "/lowprice":
+    elif call.data == '/lowprice':
         bot.send_message(call.message.chat.id, '/lowprice в разработке')
-    elif call.data == "/highprice":
+    elif call.data == '/highprice':
         bot.send_message(call.message.chat.id, '/highprice в разработке')
-    elif call.data == "/bestdeal":
+    elif call.data == '/bestdeal':
         bot.send_message(call.message.chat.id, '/bestdeal в разработке')
-    elif call.data == "/history":
+    elif call.data == '/history':
         bot.send_message(call.message.chat.id, '/history в разработке')
 
 
-@bot.message_handler(state=None)
+@bot.message_handler(func=lambda message: True, content_types=config.all_type)
 def other_message(message: Message) -> None:
     """
     Функция -обработчик всех прочих сообщений
@@ -104,8 +127,9 @@ def other_message(message: Message) -> None:
     :return: None
     """
     bot.send_message(message.from_user.id,
-                     'Для ознакомления с доступными функциями напишите /help\nили нажмите кнопку ниже',
+                     'Для ознакомления с доступными функциями отправьте сообщение /help\nили нажмите кнопку ниже',
                      reply_markup=main_keyboard(command='/start'))
 
 
-bot.polling(none_stop=True, interval=0)
+if __name__ == '__main__':
+    bot.polling(none_stop=True, interval=0)
