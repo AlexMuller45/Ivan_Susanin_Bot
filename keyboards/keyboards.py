@@ -43,8 +43,8 @@ def quantity_keyboard() -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup()
     key_three = types.InlineKeyboardButton(text='3', callback_data='quantity_3')
     key_five = types.InlineKeyboardButton(text='5', callback_data='quantity_5')
-    key_ten = types.InlineKeyboardButton(text='10', callback_data='quantity_10')
-    markup.add(key_three, key_five, key_ten)
+    key_eight = types.InlineKeyboardButton(text='8', callback_data='quantity_8')
+    markup.add(key_three, key_five, key_eight)
     return markup
 
 

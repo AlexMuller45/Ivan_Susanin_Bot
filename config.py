@@ -6,6 +6,9 @@ city_url = 'https://hotels4.p.rapidapi.com/locations/v2/search'
 
 hotel_url = 'https://hotels4.p.rapidapi.com/properties/list'
 
+photo_url = "https://hotels4.p.rapidapi.com/properties/get-hotel-photos"
+
+
 hotels_headers = {
     'X-RapidAPI-Key': 'aa78bcbe66msh56c8e06c9bdfbb5p1a25c3jsn9849f53266dd',
     'X-RapidAPI-Host': 'hotels4.p.rapidapi.com'
@@ -27,11 +30,27 @@ query_hotel = {
     'sortOrder': 'PRICE',
     'locale': 'en_US',
     'currency': 'USD',
-    'hotel_amount': '',
-    'photo_amount': ''}
+    'hotel_amount': 0,
+    'photo_amount': 0
+}
+
+query_photo = {
+    'id': ''
+}
 
 
-def query_hotel_rest() -> None:
+hotel_info = {
+    'id': 0000,
+    'name': '',
+    'address': '',
+    'distance_center': '',
+    'price': 00.00,
+    'fully_bundled_price_per_stay': 00.00,
+    'photo_amount': 0,
+    'photo': []}
+
+
+def query_hotel_reset() -> None:
     """
     Функция обнуления данных запроса.
     :return: None
@@ -39,8 +58,23 @@ def query_hotel_rest() -> None:
     query_hotel['destinationId'] = ''
     query_hotel['checkIn'] = ''
     query_hotel['checkOut'] = ''
-    query_hotel['hotel_amount'] = ''
-    query_hotel['photo_amount'] = ''
+    query_hotel['hotel_amount'] = 0
+    query_hotel['photo_amount'] = 0
+
+
+def hotel_info_reset() -> None:
+    """
+    Функция обнуления данных.
+    :return: None
+    """
+    hotel_info['id'] = 0000
+    hotel_info['name'] = ''
+    hotel_info['address'] = ''
+    hotel_info['distance_center'] = ''
+    hotel_info['price'] = 00.00
+    hotel_info['fully_bundled_price_per_stay'] = 0
+    hotel_info['photo_amount'] = 0
+    hotel_info['photo'].clear()
 
 
 #стикеры

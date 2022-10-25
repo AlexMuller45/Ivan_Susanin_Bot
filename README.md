@@ -57,3 +57,13 @@
     /highprice — вывод самых дорогих отелей в городе
     /bestdeal — вывод отелей, наиболее подходящих по цене и расположению от центра,
     /history — вывод истории поиска отелей.
+
+hotel_info = {
+    'id': 0000,
+    'name': '',
+    'address': '',
+    'distance_center': '1.1 miles',
+    'price': 00.00,
+    'fully_bundled_price_per_stay': 00.00,
+    'photo_amount': '',
+    'photo': []}

@@ -3,29 +3,24 @@ from bot import bot
 import requests
 import config
 import json
+import types
+import re
+
 
 from telebot import TeleBot
-from telebot.types import Message, CallbackQuery
+from telebot.types import Message, CallbackQuery, InputMediaPhoto
 from langdetect import detect
-from typing import Union
+from typing import Union, Any
 from keyboards.keyboards import city_keyboard, quantity_keyboard, yes_no_keyboard
 from keyboards import calendar
-from config import query_hotel
+from config import query_hotel, hotel_info, query_photo
 from main import command_start, command_help
+from datetime import datetime
 
 city_list = [{'destinationId': '', 'name': ''}]
 i_city = {'destinationId': '', 'name': ''}
 country_id = ['']
-hotels_low = list[dict]
-hotel_ifo = {
-    'id': 0000,
-    'name': '',
-    'address': '',
-    'distance_center': '',
-    'price': 00.00,
-    'photo_amount': '',
-    'photo': []
-}
+hotels_low = list(dict())
 
 
 def start_script(message: Union[Message, CallbackQuery], bot: TeleBot) -> None:
@@ -36,7 +31,7 @@ def start_script(message: Union[Message, CallbackQuery], bot: TeleBot) -> None:
     :return: None
     """
 
-    config.query_hotel_rest()
+    config.query_hotel_reset()
 
     if isinstance(message, CallbackQuery):
         bot.send_sticker(message.from_user.id, config.sticker_go)
@@ -141,17 +136,99 @@ def photo_necessity(call: CallbackQuery) -> None:
 
 
 def request_hotel(call: CallbackQuery) -> None:
+    """
+    Функция формирует и отправляет запрос на отели в определенном городе,
+    получает ответ с сортировкой отелей по возрастанию стоимости проживания,
+    готовит список отелей и подгружает, при необходимости фото.
+    :param call: CallbackQuery
+    :return: None
+    """
+    bot.send_message(call.from_user.id, 'Подбираю варианты...')
     response = requests.request('GET', config.hotel_url, headers=config.hotels_headers, params=query_hotel)
     request_hotel_data = json.loads(response.text)['data']['body']['searchResults']['results']
     print(query_hotel)
     print(request_hotel_data)
 
+    day_per_stay = datetime.strptime(query_hotel['checkOut'], '%Y-%m-%d') \
+                   - datetime.strptime(query_hotel['checkIn'], '%Y-%m-%d')
 
-#     TODO: взять из запроса "hotel_amount" отелей, загрузить для них 'photo_amount' фото и передать на вывод в бот
+    hotels_low.clear()
+
+    for i_hotel in range(query_hotel['hotel_amount']):
+        config.hotel_info_reset()
+        hotel_info['id'] = request_hotel_data[i_hotel]['id']
+        hotel_info['name'] = request_hotel_data[i_hotel]['name']
+        hotel_info['address'] = request_hotel_data[i_hotel]['address']['streetAddress'] + ', ' \
+                                + request_hotel_data[i_hotel]['address']['locality'] + ', ' \
+                                + request_hotel_data[i_hotel]['address']['countryName']
+        hotel_info['distance_center'] = request_hotel_data[i_hotel]['landmarks'][0]['distance']
+        hotel_info['price'] = request_hotel_data[i_hotel]['ratePlan']['price']['exactCurrent']
+        hotel_info['fully_bundled_price_per_stay'] \
+            = (day_per_stay.days - 1) * hotel_info['price']
+
+        # загрузка фото
+        if query_hotel['photo_amount'] <= 0:
+            pass
+        else:
+            bot.send_message(call.from_user.id, 'Подгружаю фото...')
+            query_photo[id] = hotel_info['id']
+            photo_response = requests.request(
+                "GET",
+                config.photo_url,
+                headers=config.hotels_headers,
+                params=query_photo
+            )
+            print(photo_response)
+
+            request_hotel_photo = json.loads(photo_response.text)
+
+            if len(request_hotel_photo['hotelImages']) > query_hotel['photo_amount']:
+                # если на сервере фото больше чем надо
+                for i_photo in range(query_hotel['photo_amount']):
+                    base_url = request_hotel_photo['hotelImages'][i_photo]['baseUrl'].format(size='y')
+                    hotel_info['photo'].append(InputMediaPhoto(base_url))
+            else:
+                # если фото мало
+                for i_photo in range(len(request_hotel_photo['hotelImages'])):
+                    base_url = request_hotel_photo['hotelImages'][i_photo]['baseUrl'].format(size='y')
+                    hotel_info['photo'].append(InputMediaPhoto(base_url))
+
+        hotels_low.append(hotel_info)
+    print(hotels_low)
+    output_hotel(call, hotels_low)
 
 
-def output_hotel(call: CallbackQuery, request_data: list[dict]) -> None:
-    pass
+def output_hotel(call: CallbackQuery, request_data: Any) -> None:
+    exchange_rate = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()['Valute']['USD']['Value']
+    in_order = 1
+    for i_hotel_info in request_data:
+        price_rub = i_hotel_info['price'] * exchange_rate
+        price_rub = round(price_rub, 2)
+        total_rub = i_hotel_info['fully_bundled_price_per_stay'] * exchange_rate
+        total_rub = round(total_rub, 2)
+        distance_meters = float(re.search(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?', i_hotel_info['distance_center']).group()) * 1.609344
+        distance_meters = round(distance_meters, 3)
+        text = '{order}. Название отеля:\n {name}\n' \
+               'Адрес отеля: {address}\n' \
+               'Расстояние до центра: {distance} км\n' \
+               'Стоимость за сутки: {price} руб.\n' \
+               'Стоимость за все время прибывания: {total} руб.\n'.format(
+            order=in_order,
+            name=i_hotel_info['name'],
+            address=i_hotel_info['address'],
+            distance=distance_meters,
+            price=price_rub,
+            total=total_rub)
+
+        bot.send_message(call.from_user.id, text)
+
+        if query_hotel['photo_amount'] > 0:
+            bot.send_media_group(call.from_user.id, i_hotel_info['photo'])
+
+        in_order += 1
+
+    bot.send_message(call.from_user.id, '-= Поиск завершен =-')
+
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('city_'))
@@ -181,12 +258,12 @@ def hotel_photo_amount_handler(call: CallbackQuery) -> None:
     :param call: CallbackQuery
     :return: None
     """
-    if query_hotel['hotel_amount'] == '':
-        query_hotel['hotel_amount'] = call.data[9:]
+    if query_hotel['hotel_amount'] == 0:
+        query_hotel['hotel_amount'] = int(call.data[9:])
         print(query_hotel['hotel_amount'])
         photo_necessity(call)
     else:
-        query_hotel['photo_amount'] = call.data[9:]
+        query_hotel['photo_amount'] = int(call.data[9:])
         print(query_hotel['photo_amount'])
         request_hotel(call)
 
@@ -195,8 +272,8 @@ def hotel_photo_amount_handler(call: CallbackQuery) -> None:
 def photo_necessity_handler(call: CallbackQuery) -> None:
     """
     Функция-обработчик inline-кнопок с подтверждением необходимости фото.
-    Если фото нужны -запускает сценарий выбора количества фото.
-    Если фото не требуется -запускает сценарий поиска отелей.
+    Если фото нужны - запускает сценарий выбора количества фото.
+    Если фото не требуется - запускает сценарий поиска отелей.
     :param call: CallbackQuery
     :return: None
     """
@@ -205,7 +282,7 @@ def photo_necessity_handler(call: CallbackQuery) -> None:
                               message_id=call.message.message_id,
                               text='выбрано: -= Без фото =-',
                               reply_markup=None)
-        query_hotel['photo_amount'] = 'None'
+        query_hotel['photo_amount'] = 0
         request_hotel(call)
     elif call.data == 'confirm_yes':
         bot.edit_message_text(chat_id=call.message.chat.id,
