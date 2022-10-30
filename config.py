@@ -46,6 +46,7 @@ hotel_info = {
     'distance_center': '',
     'price': 00.00,
     'fully_bundled_price_per_stay': 00.00,
+    'night_per_stay': 0,
     'photo_amount': 0,
     'photo': []}
 
@@ -73,6 +74,7 @@ def hotel_info_reset() -> None:
     hotel_info['distance_center'] = ''
     hotel_info['price'] = 00.00
     hotel_info['fully_bundled_price_per_stay'] = 0
+    hotel_info['night_per_stay'] = 0
     hotel_info['photo_amount'] = 0
     hotel_info['photo'].clear()
 
@@ -85,10 +87,10 @@ sticker_go = 'CAACAgIAAxkBAAEFyQ9jGjiizpFVIfk9Joj40ZYnDbSIEAACcRcAAhNGYUoXZ6C6Go
 
 #тексты
 help_message = 'Доступные функции:\n' \
-               '-Low Price- подборка самых дешёвых отелей в городе\n' \
-               '-High Price- подборка самых дорогих отелей в городе\n' \
-               '-Best Deal- подборка отелей, наиболее подходящих по цене и расположению от центра\n' \
-               '-History- вывод истории поиска отелей'
+               '/lowprice- подборка самых дешёвых отелей в городе\n' \
+               '/highprice- подборка самых дорогих отелей в городе\n' \
+               '/bestdeal- подборка отелей, наиболее подходящих по цене и расположению от центра\n' \
+               '/history- вывод истории поиска отелей'
 
 
 #типы входящих сообщений
