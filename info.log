@@ -1,0 +1,7 @@
+
+INFO | bot_logger | 2022-10-31 18:15:00,926 | lowprice.py | start_script_lowprice | 21 | 804275900
+INFO | bot_logger | 2022-10-31 18:15:19,044 | functions.py | select_city | 52 | 804275900
+INFO | bot_logger | 2022-10-31 18:15:19,045 | functions.py | search_city | 83 | 804275900
+INFO | bot_logger | 2022-10-31 18:16:46,149 | highprice.py | start_script_highprice | 20 | 804275900
+INFO | bot_logger | 2022-10-31 18:17:00,371 | functions.py | select_city | 52 | 804275900
+INFO | bot_logger | 2022-10-31 18:17:00,372 | functions.py | search_city | 83 | 804275900

@@ -1,7 +1,7 @@
 from bot import bot
 import config
 from keyboards.keyboards import main_keyboard
-from commands import lowprice
+from commands import lowprice, highprice, bestdeal
 from telebot.types import CallbackQuery, Message
 
 
@@ -46,7 +46,7 @@ def command_lowprice(message: Message) -> None:
     :return: None
     """
     bot.send_message(message.from_user.id, 'Поиск самых дешёвых отелей в городе.')
-    lowprice.start_script(message, bot)
+    lowprice.start_script_lowprice(message, bot)
 
 
 @bot.message_handler(commands=['highprice'])
@@ -56,7 +56,8 @@ def command_highprice(message: Message) -> None:
     :param message: Message
     :return: None
     """
-    bot.send_message(message.from_user.id, '/highprice в разработке')
+    bot.send_message(message.from_user.id, 'Поиск самых дорогих отелей в городе')
+    highprice.start_script_highprice(message, bot)
 
 
 @bot.message_handler(commands=['bestdeal'])
@@ -66,7 +67,8 @@ def command_bestdeal(message: Message) -> None:
     :param message: Message
     :return: None
     """
-    bot.send_message(message.from_user.id, '/bestdeal в разработке')
+    bot.send_message(message.from_user.id, 'Поиск отеля по диапазону цен и удаленности от центра.')
+    bestdeal.start_script_bestdeal(message, bot)
 
 
 @bot.message_handler(commands=['history'])
@@ -93,12 +95,14 @@ def inline_handler(call: CallbackQuery) -> None:
         bot.send_message(call.from_user.id, config.help_message, reply_markup=main_keyboard(call.data))
     elif call.data == '/lowprice':
         bot.send_message(call.from_user.id, 'Поиск самых дешёвых отелей в городе.')
-        lowprice.start_script(call, bot)
+        lowprice.start_script_lowprice(call, bot)
 
     elif call.data == '/highprice':
-        bot.send_message(call.from_user.id, '/highprice в разработке')
+        bot.send_message(call.from_user.id, 'Поиск самых дорогих отелей в городе. ')
+        highprice.start_script_highprice(call, bot)
     elif call.data == '/bestdeal':
-        bot.send_message(call.from_user.id, '/bestdeal в разработке')
+        bot.send_message(call.from_user.id, 'Поиск отеля по диапазону цен и удаленности от центра.')
+        bestdeal.start_script_bestdeal(call, bot)
     elif call.data == '/history':
         bot.send_message(call.from_user.id, '/history в разработке')
 

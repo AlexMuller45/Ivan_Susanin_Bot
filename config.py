@@ -27,6 +27,8 @@ query_hotel = {
     'checkIn': '',
     'checkOut': '',
     'adults1': '1',
+    'priceMin': '',
+    'priceMax': '',
     'sortOrder': 'PRICE',
     'locale': 'en_US',
     'currency': 'USD',
@@ -42,6 +44,7 @@ query_photo = {
 hotel_info = {
     'id': 0000,
     'name': '',
+    'url': '',
     'address': '',
     'distance_center': '',
     'price': 00.00,
@@ -59,6 +62,8 @@ def query_hotel_reset() -> None:
     query_hotel['destinationId'] = ''
     query_hotel['checkIn'] = ''
     query_hotel['checkOut'] = ''
+    query_hotel['priceMin'] = ''
+    query_hotel['priceMax'] = ''
     query_hotel['hotel_amount'] = 0
     query_hotel['photo_amount'] = 0
 
@@ -70,6 +75,7 @@ def hotel_info_reset() -> None:
     """
     hotel_info['id'] = 0000
     hotel_info['name'] = ''
+    hotel_info['url'] = ''
     hotel_info['address'] = ''
     hotel_info['distance_center'] = ''
     hotel_info['price'] = 00.00

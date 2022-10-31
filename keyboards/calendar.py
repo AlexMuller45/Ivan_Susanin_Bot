@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, date
 from bot import bot
 from telegram_bot_calendar import DetailedTelegramCalendar
 
-from commands import lowprice
+from commands import functions
 from config import LSTEP, query_hotel
 from telebot.types import CallbackQuery
 
@@ -94,5 +94,5 @@ def date_out_set(call: CallbackQuery) -> Any:
                               call.message.message_id)
         query_hotel['checkOut'] = datetime.strftime(result, '%Y-%m-%d')
         query_hotel['checkIn'] = datetime.strftime(query_hotel['checkIn'], '%Y-%m-%d')
-        lowprice.hotel_amount_set(call)
+        functions.check_bestdeal(call)
 
