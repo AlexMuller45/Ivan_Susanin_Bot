@@ -29,7 +29,7 @@ query_hotel = {
     'adults1': '1',
     'priceMin': '',
     'priceMax': '',
-    'sortOrder': 'PRICE',
+    'sortOrder': '',
     'locale': 'en_US',
     'currency': 'USD',
     'hotel_amount': 0,

@@ -8,18 +8,20 @@ from bot import bot, logger, exception_handler
 from telebot.types import Message, CallbackQuery, InputMediaPhoto
 from langdetect import detect
 from typing import Union, Any
-from keyboards.keyboards import city_keyboard, quantity_keyboard, yes_no_keyboard
+from keyboards.keyboards import city_keyboard, quantity_keyboard, yes_no_keyboard, main_keyboard
 from keyboards import calendar
 from config import query_hotel, hotel_info, query_photo
 from main import command_start, command_help
 from datetime import datetime
+from requests import ReadTimeout
+
 
 city_list = [{'destinationId': '', 'name': ''}]
 i_city = {'destinationId': '', 'name': ''}
 country_id = ['']
 hotels = list(dict())
 command_id = {'id': ''}
-distance = {'distance_from_center': '', 'units': 'км', 'ratio': 1.609344}
+distance = {'distance_from_center': 0.0, 'units': 'км', 'ratio': 1.609344}
 
 def start_select_city(message: Union[Message, CallbackQuery], identifier: str) -> None:
     """
@@ -31,6 +33,7 @@ def start_select_city(message: Union[Message, CallbackQuery], identifier: str) -
     logger.info(str(message.from_user.id))
 
     command_id['id'] = identifier
+
     if isinstance(message, CallbackQuery):
         bot.send_sticker(message.from_user.id, config.sticker_go)
         bot.send_message(message.from_user.id, 'Куда едем?')
@@ -141,13 +144,13 @@ def set_price_range(message: Message) -> None:
     :return: None
     """
     logger.info(str(message.from_user.id))
-    price_renge = message.text.split('[ !"#$%&()*+,-./:;<=>?@^_`{|}~]')
+    price_renge = message.text.split('-')
     exchange_rate = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()['Valute']['USD']['Value']
     if len(price_renge) == 2:
         if price_renge[0].isdigit() and price_renge[1].isdigit():
             price_renge[0] = str(round(float(price_renge[0]) / exchange_rate, 2))
             price_renge[1] = str(round(float(price_renge[1]) / exchange_rate, 2))
-            if price_renge[0] < price_renge[1]:
+            if float(price_renge[0]) < float(price_renge[1]):
                 query_hotel['priceMin'] = price_renge[0]
                 query_hotel['priceMax'] = price_renge[1]
             else:
@@ -155,14 +158,10 @@ def set_price_range(message: Message) -> None:
                 query_hotel['priceMax'] = price_renge[0]
         else:
             logger.error('ошибка ввода данных')
-            bot.send_message(message.chat.id, 'оба числа должны быть цифрами')
-            repeat_message = bot.send_message(message.from_user.id, 'Укажите диапазон цен, руб., например 5000-8000: ')
-            bot.register_next_step_handler(repeat_message, set_price_range)
+            bot.register_next_step_handler('оба числа должны быть цифрами', check_bestdeal)
     else:
         logger.error('ошибка ввода данных')
-        bot.send_message(message.chat.id, 'должно быть два числа разделенных "-" или пробелом')
-        repeat_message = bot.send_message(message.from_user.id, 'Укажите диапазон цен, руб., например 5000-8000: ')
-        bot.register_next_step_handler(repeat_message, set_price_range)
+        bot.register_next_step_handler('должно быть два числа разделенных "-" без пробелов', check_bestdeal)
 
     distance_message = bot.send_message(message.from_user.id, 'Введите удаленность от центра в км')
     bot.register_next_step_handler(distance_message, set_distance)
@@ -179,7 +178,7 @@ def set_distance(message: Message) -> None:
     logger.info(str(message.from_user.id))
     requested_distance = re.match(r'\d*\.?\d+', message.text.replace(',', '.')).group()
     if requested_distance.isdigit():
-        distance['distance_from_center'] = requested_distance
+        distance['distance_from_center'] = float(requested_distance)
     else:
         logger.error('ошибка ввода данных')
         bot.send_message(message.chat.id, 'число должно быть из цифр')
@@ -236,16 +235,26 @@ def request_hotel(call: CallbackQuery) -> None:
     if query_hotel['photo_amount'] > 0:
         bot.send_message(call.from_user.id, ' и подгружаю фото...')
 
+    if command_id['id'] == 'highprice':
+        query_hotel['sortOrder'] = '-PRICE'
+    elif command_id['id'] == 'lowprice':
+        query_hotel['sortOrder'] = 'PRICE'
+    elif command_id['id'] == 'bestdeal':
+        query_hotel['sortOrder'] = 'DISTANCE_FROM_LANDMARK'
+
     query_string = query_hotel.copy()
     del query_string['hotel_amount']
     del query_string['photo_amount']
 
-    if command_id['id'] == 'highprice':
-        query_string['sortOrder'] = '-PRICE'
-    elif command_id['id'] == 'lowprice':
-        pass
+    try:
+        response = requests.request('GET', config.hotel_url, headers=config.hotels_headers, params=query_string)
+    except (ConnectionError, TimeoutError, ReadTimeout) as error:
+        logger.error('В работе бота возникло исключение', exc_info=error)
+        bot.send_message(call.from_user.id,
+                         '{}!\n'
+                         'Ошибка соединения с сервером, попробуйте позже.'.format(call.from_user.first_name),
+                         reply_markup=main_keyboard('/help'))
 
-    response = requests.request('GET', config.hotel_url, headers=config.hotels_headers, params=query_string)
     request_hotel_data = json.loads(response.text)['data']['body']['searchResults']['results']
 
     print(query_hotel)
@@ -253,6 +262,18 @@ def request_hotel(call: CallbackQuery) -> None:
 
     day_per_stay = datetime.strptime(query_hotel['checkOut'], '%Y-%m-%d') - datetime.strptime(query_hotel['checkIn'],
                                                                                               "%Y-%m-%d")
+
+    if command_id['id'] == 'bestdeal':
+        request_hotel_data = sort_bestdeal(request_hotel_data)
+
+    if len(request_hotel_data) < 1:
+        logger.info('Поиск не дал результата')
+        bot.send_message(call.from_user.id,
+                         '{}!\n'
+                         'Подходящих отелей нет, попробуйте другие условия.'.format(call.from_user.first_name),
+                         reply_markup=main_keyboard('/help'))
+    elif len(request_hotel_data) < query_hotel['hotel_amount']:
+        query_hotel['hotel_amount'] = len(request_hotel_data)
 
     hotels.clear()
 
@@ -269,7 +290,6 @@ def request_hotel(call: CallbackQuery) -> None:
         hotel_info['fully_bundled_price_per_stay'] \
             = (day_per_stay.days - 1) * hotel_info['price']
         hotel_info['night_per_stay'] = day_per_stay.days - 1
-
 
         # загрузка фото
         if query_hotel['photo_amount'] <= 0:
@@ -302,6 +322,22 @@ def request_hotel(call: CallbackQuery) -> None:
 
     print(hotels)
     output_hotel(call, hotels)
+
+
+@exception_handler
+def sort_bestdeal(hotel_data: list[dict]) -> list[dict]:
+    """
+    Функция для сценария bestdeal, убирает из запроса отеле, расположенные от центра дальше чем требуется по запросу
+    :param hotel_data: list[dict]
+    :return: hotel_data: list[dict]
+    """
+    for i_elem in range(query_hotel['hotel_amount']):
+        i_distance = float(re.search(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?',
+                                     hotel_data[i_elem]['landmarks'][0]['distance']).group()) * distance['ratio']
+        if i_distance > distance['distance_from_center']:
+            return hotel_data
+
+    return hotel_data
 
 
 @exception_handler
