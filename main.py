@@ -1,7 +1,7 @@
 from bot import bot
 import config
 from keyboards.keyboards import main_keyboard
-from commands import lowprice, highprice, bestdeal
+from commands import lowprice, highprice, bestdeal, history
 from telebot.types import CallbackQuery, Message
 
 
@@ -78,7 +78,8 @@ def command_history(message: Message) -> None:
     :param message: Message
     :return: None
     """
-    bot.send_message(message.from_user.id, '/history в разработке')
+    bot.send_message(message.from_user.id, 'История поиска отелей')
+    history.start_script_history(message, bot)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('/'))
@@ -100,11 +101,14 @@ def inline_handler(call: CallbackQuery) -> None:
     elif call.data == '/highprice':
         bot.send_message(call.from_user.id, 'Поиск самых дорогих отелей в городе. ')
         highprice.start_script_highprice(call, bot)
+
     elif call.data == '/bestdeal':
         bot.send_message(call.from_user.id, 'Поиск отеля по диапазону цен и удаленности от центра.')
         bestdeal.start_script_bestdeal(call, bot)
+
     elif call.data == '/history':
-        bot.send_message(call.from_user.id, '/history в разработке')
+        bot.send_message(call.from_user.id, 'История поиска отелей')
+        history.start_script_history(call, bot)
 
 
 @bot.message_handler(func=lambda message: True, content_types=config.all_type)

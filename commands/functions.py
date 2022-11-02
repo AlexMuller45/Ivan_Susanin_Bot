@@ -12,6 +12,7 @@ from keyboards.keyboards import city_keyboard, quantity_keyboard, yes_no_keyboar
 from keyboards import calendar
 from config import query_hotel, hotel_info, query_photo
 from main import command_start, command_help
+from commands.history import save_history
 from datetime import datetime
 from requests import ReadTimeout
 
@@ -22,6 +23,7 @@ country_id = ['']
 hotels = list(dict())
 command_id = {'id': ''}
 distance = {'distance_from_center': 0.0, 'units': 'км', 'ratio': 1.609344}
+
 
 def start_select_city(message: Union[Message, CallbackQuery], identifier: str) -> None:
     """
@@ -352,6 +354,7 @@ def output_hotel(call: CallbackQuery, request_data: Any) -> None:
     exchange_rate = requests.get('https://www.cbr-xml-daily.ru/daily_json.js').json()['Valute']['USD']['Value']
     in_order = 1
     bot.send_message(call.from_user.id, 'Срок пребывания {night} ночей'.format(night=request_data[0]['night_per_stay']))
+    hotels_text_line = ''
     for i_hotel_info in request_data:
         price_rub = i_hotel_info['price'] * exchange_rate
         price_rub = round(price_rub, 2)
@@ -371,6 +374,7 @@ def output_hotel(call: CallbackQuery, request_data: Any) -> None:
                                                                         distance=distance_meters,
                                                                         price=price_rub,
                                                                         total=total_rub)
+        hotels_text_line += i_hotel_info['name'] + '# '
 
         if query_hotel['photo_amount'] > 0:
             bot.send_message(call.from_user.id, text)
@@ -381,6 +385,11 @@ def output_hotel(call: CallbackQuery, request_data: Any) -> None:
         in_order += 1
         line = '- - - = = = *** = = = - - -'
         bot.send_message(call.from_user.id, line)
+
+    data_now = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+    histore_line = str(call.from_user.id) + '# ' + command_id['id'] + '# ' + data_now + '# ' + hotels_text_line + '\n'
+    save_history(call, histore_line)
+    print(histore_line)
 
     bot.send_message(call.from_user.id, '-= Поиск завершен =-')
 

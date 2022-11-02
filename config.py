@@ -89,6 +89,7 @@ def hotel_info_reset() -> None:
 sticker_welcom = 'CAACAgIAAxkBAAEFtjJjDREuacFYepN2amhbvk_iVqVhOwACVxcAAprXMUovDVqm4UquUykE'
 sticker_help = 'CAACAgIAAxkBAAEFtjhjDRqkAZnFVMCjYPiXfr9_tAl-1QACvBYAAkRxEUtIKXB4k2KzECkE'
 sticker_go = 'CAACAgIAAxkBAAEFyQ9jGjiizpFVIfk9Joj40ZYnDbSIEAACcRcAAhNGYUoXZ6C6Got-NikE'
+sticker_history = 'CAACAgIAAxkBAAEGSYdjYkmkjDMUFvHvA3G7KTOzoPQ4ZQACnxcAAm9UEEt9ITe_BenYEioE'
 
 
 #тексты
