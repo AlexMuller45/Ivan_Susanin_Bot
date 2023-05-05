@@ -49,9 +49,10 @@
 2 Дату и время ввода команды.
 3 Отели, которые были найдены.
 
+### Скриншоты работы бота
 
-![view_5](https://user-images.githubusercontent.com/105842339/236523402-a53db623-d03d-4009-bfe8-e849b7f65881.PNG)
-![view_4](https://user-images.githubusercontent.com/105842339/236523412-b9a64c60-3608-4d63-9f08-ed61bb3f0d5c.PNG)
-![view_3](https://user-images.githubusercontent.com/105842339/236523415-23faad03-f3d3-4972-9162-14064de0c5a7.PNG)
-![view_2](https://user-images.githubusercontent.com/105842339/236523418-c18be5e7-6e33-4c54-ad31-a7695d8d826d.PNG)
 ![view_1](https://user-images.githubusercontent.com/105842339/236523420-c19aea71-70d6-4207-abff-b607ab87ab01.PNG)
+![view_2](https://user-images.githubusercontent.com/105842339/236523418-c18be5e7-6e33-4c54-ad31-a7695d8d826d.PNG)
+![view_3](https://user-images.githubusercontent.com/105842339/236523415-23faad03-f3d3-4972-9162-14064de0c5a7.PNG)
+![view_4](https://user-images.githubusercontent.com/105842339/236523412-b9a64c60-3608-4d63-9f08-ed61bb3f0d5c.PNG)
+![view_5](https://user-images.githubusercontent.com/105842339/236523402-a53db623-d03d-4009-bfe8-e849b7f65881.PNG)
