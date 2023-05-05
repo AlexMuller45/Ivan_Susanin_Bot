@@ -49,7 +49,7 @@
 2 Дату и время ввода команды.
 3 Отели, которые были найдены.
 
-### Скриншоты работы бота
+## Скриншоты работы бота
 
 ![view_1](https://user-images.githubusercontent.com/105842339/236523420-c19aea71-70d6-4207-abff-b607ab87ab01.PNG)
 ![view_2](https://user-images.githubusercontent.com/105842339/236523418-c18be5e7-6e33-4c54-ad31-a7695d8d826d.PNG)
