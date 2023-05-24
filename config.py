@@ -1,5 +1,5 @@
 #токен бота
-bot_token = '5522049183:AAG8AHjGhfxkpo2s2IhYSI5T3IIT_rrw-8E'
+bot_token = 'xxxxxxxxxxxxxxxxx' #неодходимо указать токен бота
 
 #Hotels API
 city_url = 'https://hotels4.p.rapidapi.com/locations/v2/search'
